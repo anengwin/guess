@@ -1,0 +1,82 @@
+import tushare as ts
+import numpy as np
+import pandas as pd
+
+df = ts.get_stock_basics().index
+idx=[]
+ip=[]
+df = np.array(df)
+for i in df:
+    a = ts.get_hist_data(i, ktype='D',start='2018-07-10')
+    a = np.array(a)    
+    if a!=[] and a.shape[0] >= 5:        
+        a = a[:,6]        
+        a = a[ :5]
+        b = []
+        for j in a:
+            b.append(j)
+            
+        if b[4]<5 and b[3]<5 and b[2]>9.5 and b[1]<0 and b[0]< 0:
+            ip.append(i)
+
+        if b[4]<3 and b[3]>9.5 and b[2]<0 and b[1]<0:
+            idx.append(i)            
+        else:
+            continue       
+print('前3天',ip)        
+print('前4天',idx)
+
+import tushare as ts
+import numpy as np
+import pandas as pd
+import sklearn
+from sklearn.linear_model import LogisticRegression
+from random import randint
+import matplotlib.pyplot as plt
+import time
+import datetime
+
+
+t = datetime.datetime.now()
+if t.month < 11:
+    tday = str(t.year) + '-' + '0' + str(t.month-1) + '-' + '01'
+if t.month > 11:
+    tday = str(t.year) + '-' + str(t.month-1) + '-' + '01'
+
+f = ts.get_stock_basics().index
+f = np.array(f)
+# f=['603081',  '603008', '600671', '002866','000820', '002335', '002288', '600601', '000005', '000868', '002910', '600165' ]
+idx=[]
+ip=[]
+count=0
+for i in f:
+#     print(i)
+#     count +=1
+#     print(count)
+    c = ts.get_hist_data(i,ktype='D',start=tday)
+    c=c[['open','high','close','low','p_change']]
+    df=np.array(c)
+    #把df倒序
+    a = [df[0]]
+    for j in range(1,len(df)):
+        a.insert(0,df[j])
+    d = np.array(a)
+    df = pd.DataFrame(d)
+    def get_ALF(df,N=10):
+        df['alf']=100*(df[2]/df[2].shift(N)-1)
+        return df  
+    get_ALF(df)    
+    df=np.array(df)
+    if df!=[] and df.shape[0]>4:
+        df=df[:,5]
+        df=df[df.shape[0]-5:]
+        if df[3]<0 and df[4]> -1 and df[4]<0:
+            idx.append(i)
+        if df[3]<0 and df[4]>0:
+            ip.append(i)    
+        else:
+            continue
+    else:
+        continue
+print('idx',idx)    
+print('ip',ip)
